@@ -9,7 +9,7 @@ export const Row = memo(({ cells, row, setColoredCell, nbCells }) => {
         <Cell
           key={i}
           col={i}
-          checked={cells.includes(i + nbCells * row)}
+          checked={cells[i]}
           pressedAction={() => setColoredCell(row, i)}
         />
       ))}

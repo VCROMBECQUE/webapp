@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 
-import { StyleSheet, View, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableWithoutFeedback } from "react-native";
 
 export const Cell = memo(({ pressedAction, checked }) => {
   const getColor = useCallback(() => {
@@ -9,9 +9,9 @@ export const Cell = memo(({ pressedAction, checked }) => {
 
   return (
     <View>
-      <TouchableOpacity onPress={pressedAction}>
+      <TouchableWithoutFeedback onPress={pressedAction}>
         <View style={[styles.cell, { backgroundColor: getColor() }]} />
-      </TouchableOpacity>
+      </TouchableWithoutFeedback>
     </View>
   );
 });

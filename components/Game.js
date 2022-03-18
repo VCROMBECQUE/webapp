@@ -6,37 +6,58 @@ import { range } from "../filters";
 const patterns = [
   {
     name: "damiertest",
-    size: 3,
-    matrice: [],
-  },
-  {
-    name: "damier",
-    size: 5,
-    matrice: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23],
-  },
-  {
-    name: "damier2",
     size: 7,
-    matrice: [
-      0, 1, 3, 5, 6, 7, 8, 10, 12, 13, 16, 17, 18, 21, 22, 23, 24, 25, 26, 27,
-      30, 31, 32, 35, 36, 38, 40, 41, 42, 43, 45, 47, 48,
-    ],
-  },
-  {
-    name: "damier3",
-    size: 7,
-    matrice: [
-      0, 1, 5, 6, 7, 9, 10, 11, 13, 14, 15, 16, 18, 19, 20, 22, 26, 29, 30, 31,
-      32, 33, 35, 36, 37, 39, 40, 41, 42, 45, 48,
-    ],
-  },
-  {
-    name: "damier4",
-    size: 7,
-    matrice: [
-      1, 5, 8, 9, 10, 11, 12, 15, 16, 18, 19, 21, 22, 23, 24, 25, 26, 27, 29,
-      31, 33, 35, 36, 37, 39, 40, 41, 43, 47,
-    ],
+    matrice: {
+      0 : false,
+      1 : false,
+      2 : false,
+      3 : false,
+      4 : false,
+      5 : false,
+      6 : false,
+      7 : false,
+      8 : false,
+      9 : false,
+      10 : false,
+      11 : false,
+      12 : false,
+      13 : false,
+      14 : false,
+      15 : false,
+      16 : false,
+      17 : false,
+      18 : false,
+      19 : false,
+      20 : false,
+      21 : false,
+      22 : false,
+      23 : false,
+      24 : false,
+      25 : false,
+      26 : false,
+      27 : false,
+      28 : false,
+      29 : false,
+      30 : false,
+      31 : false,
+      32 : false,
+      33 : false,
+      34 : false,
+      35 : false,
+      36 : false,
+      37 : false,
+      38 : false,
+      39 : false,
+      40 : false,
+      41 : false,
+      42 : false,
+      43 : false,
+      44 : false,
+      45 : false,
+      46 : false,
+      47 : false,
+      48 : false,
+    },
   },
 ];
 
@@ -49,16 +70,10 @@ export const Game = () => {
     (row, cell_id) => {
       setClick((prevState) => prevState + 1);
       const cell = cell_id + SIZE * row;
-      const newchange = getNormalizedChange(cell, row);
-      const updatedMatrice = [...matrice];
-      newchange.forEach((elem_newchange) => {
-        if (elem_newchange >= 0) {
-          if (updatedMatrice.includes(elem_newchange)) {
-            updatedMatrice.splice(updatedMatrice.indexOf(elem_newchange), 1);
-          } else {
-            updatedMatrice.push(elem_newchange);
-          }
-        }
+      const cellsToUpdate = getNormalizedChange(cell, row);
+      const updatedMatrice = {...matrice}
+      cellsToUpdate.forEach((cell) => {
+        updatedMatrice[cell] = !updatedMatrice[cell]
       });
       setMatrice(updatedMatrice);
     },
@@ -90,9 +105,13 @@ export const Game = () => {
       const min = row * SIZE;
       const max = (row + 1) * SIZE - 1;
       const between = [...range(min, max)];
-      const copyMatrice = [...matrice];
-      const filter = copyMatrice.filter((current) => between.includes(current));
-      return filter;
+
+      const cells = []
+      between.forEach(cell => {
+        cells.push(matrice[cell])
+      })
+
+      return cells;
     },
     [matrice, SIZE]
   );
