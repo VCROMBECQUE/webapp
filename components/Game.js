@@ -2,78 +2,30 @@ import { StyleSheet, SafeAreaView, Text, TouchableOpacity } from "react-native";
 import { Row } from "./Row";
 import { useState, memo, useCallback } from "react";
 import { range } from "../filters";
+import { patternGenerator } from "../patterngenerator";
 
-const patterns = [
-  {
-    name: "damiertest",
-    size: 7,
-    matrice: {
-      0 : false,
-      1 : false,
-      2 : false,
-      3 : false,
-      4 : false,
-      5 : false,
-      6 : false,
-      7 : false,
-      8 : false,
-      9 : false,
-      10 : false,
-      11 : false,
-      12 : false,
-      13 : false,
-      14 : false,
-      15 : false,
-      16 : false,
-      17 : false,
-      18 : false,
-      19 : false,
-      20 : false,
-      21 : false,
-      22 : false,
-      23 : false,
-      24 : false,
-      25 : false,
-      26 : false,
-      27 : false,
-      28 : false,
-      29 : false,
-      30 : false,
-      31 : false,
-      32 : false,
-      33 : false,
-      34 : false,
-      35 : false,
-      36 : false,
-      37 : false,
-      38 : false,
-      39 : false,
-      40 : false,
-      41 : false,
-      42 : false,
-      43 : false,
-      44 : false,
-      45 : false,
-      46 : false,
-      47 : false,
-      48 : false,
-    },
-  },
-];
+// const patterns = [
+//   {
+//     name: "damiertest2",
+//     size: 5,
+//     matrice: {},
+//   },
+// ];
 
 export const Game = () => {
-  const [matrice, setMatrice] = useState(patterns[0].matrice);
+  const [gamesize, setGamesize] = useState(5);
+  const [resetmatrice, setResetmatrice] = useState(patternGenerator(gamesize));
+  const [matrice, setMatrice] = useState(resetmatrice);
   const [click, setClick] = useState(0);
-  const [SIZE, setSIZE] = useState(patterns[0].size);
 
   const setColoredCell = useCallback(
     (row, cell_id) => {
       setClick((prevState) => prevState + 1);
-      const cell = cell_id + SIZE * row;
+      const cell = cell_id + gamesize * row;
       const cellsToUpdate = getNormalizedChange(cell, row);
-      const updatedMatrice = {...matrice}
+      const updatedMatrice = { ...matrice };
       cellsToUpdate.forEach((cell) => {
-        updatedMatrice[cell] = !updatedMatrice[cell]
+        updatedMatrice[cell] = !updatedMatrice[cell];
       });
       setMatrice(updatedMatrice);
     },
@@ -83,62 +35,56 @@ export const Game = () => {
   const getNormalizedChange = useCallback(
     (cell, row) => {
       const result = [cell];
-      if (cell - SIZE >= 0) {
-        result.push(cell - SIZE);
+      if (cell - gamesize >= 0) {
+        result.push(cell - gamesize);
       }
-      if (cell + SIZE < SIZE * SIZE) {
-        result.push(cell + SIZE);
+      if (cell + gamesize < gamesize * gamesize) {
+        result.push(cell + gamesize);
       }
-      if (cell - 1 >= row * SIZE) {
+      if (cell - 1 >= row * gamesize) {
         result.push(cell - 1);
       }
-      if (cell + 1 <= SIZE * (1 + row) - 1) {
+      if (cell + 1 <= gamesize * (1 + row) - 1) {
         result.push(cell + 1);
       }
       return result;
     },
-    [SIZE]
+    [gamesize]
   );
 
   const filterMatriceByRow = useCallback(
     (row) => {
-      const min = row * SIZE;
-      const max = (row + 1) * SIZE - 1;
+      const min = row * gamesize;
+      const max = (row + 1) * gamesize - 1;
       const between = [...range(min, max)];
 
-      const cells = []
-      between.forEach(cell => {
-        cells.push(matrice[cell])
-      })
+      const cells = [];
+      between.forEach((cell) => {
+        cells.push(matrice[cell]);
+      });
 
       return cells;
     },
-    [matrice, SIZE]
+    [matrice, gamesize]
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <Text>{click}</Text>
-      {patterns.map((pattern, key) => {
-        return (
-          <TouchableOpacity
-            key={key}
-            onPress={() => {
-              setClick(0);
-              setSIZE(pattern.size);
-              setMatrice(pattern.matrice);
-            }}
-          >
-            <Text>{pattern.name}</Text>
-          </TouchableOpacity>
-        );
-      })}
-
-      {[...Array(SIZE)].map((_, i) => (
+      <TouchableOpacity
+        onPress={() => {
+          setClick(0);
+          setMatrice(resetmatrice);
+        }}
+      >
+        <Text>Reset</Text>
+      </TouchableOpacity>
+      
+      {[...Array(gamesize)].map((_, i) => (
         <Row
           key={i}
           row={i}
-          nbCells={SIZE}
+          nbCells={gamesize}
           cells={filterMatriceByRow(i)}
           setColoredCell={setColoredCell}
         />
