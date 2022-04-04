@@ -1,27 +1,36 @@
 import { StyleSheet, SafeAreaView, Text, TouchableOpacity } from "react-native";
 import { Row } from "./Row";
-import { useState, memo, useCallback } from "react";
-import { range } from "../filters";
-import { patternGenerator } from "../patterngenerator";
-
-// const patterns = [
-//   {
-//     name: "damiertest2",
-//     size: 5,
-//     matrice: {},
-//   },
-// ];
+import { useState, useCallback, useEffect } from "react";
+import { range } from "../utils/filters";
+import { patternGenerator } from "../utils/patterngenerator";
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 export const Game = () => {
   const [gamesize, setGamesize] = useState(5);
-  const [resetmatrice, setResetmatrice] = useState(patternGenerator(gamesize));
+  const [resetmatrice, setResetmatrice] = useState(() => patternGenerator(gamesize));
   const [matrice, setMatrice] = useState(resetmatrice);
   const [click, setClick] = useState(0);
+  const [pressedcell, setPressedcell] = useState(null);
+  const [iswin, setIswin] = useState(false)
+
+  useEffect(() => {
+    setMatrice(resetmatrice)
+  }, [resetmatrice,setMatrice]);
+
+  useEffect(() => {
+    if (Object.values(matrice).every(m => m) ) {
+      setIswin(true)
+    }
+    else {
+      setIswin(false)
+    }
+  }, [matrice]);
 
   const setColoredCell = useCallback(
     (row, cell_id) => {
       setClick((prevState) => prevState + 1);
       const cell = cell_id + gamesize * row;
+      setPressedcell(cell)
       const cellsToUpdate = getNormalizedChange(cell, row);
       const updatedMatrice = { ...matrice };
       cellsToUpdate.forEach((cell) => {
@@ -70,16 +79,23 @@ export const Game = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text>{click}</Text>
+      <Text style={styles.white}>{click}</Text>
       <TouchableOpacity
         onPress={() => {
           setClick(0);
           setMatrice(resetmatrice);
         }}
       >
-        <Text>Reset</Text>
+        <Text style={styles.white}>Reset</Text>
       </TouchableOpacity>
-      
+      <TouchableOpacity
+        onPress={() => {
+          setClick(0);
+          setResetmatrice(() => patternGenerator(gamesize));
+        }}
+      >
+        <Text style={styles.white}>New map</Text>
+      </TouchableOpacity>
       {[...Array(gamesize)].map((_, i) => (
         <Row
           key={i}
@@ -87,16 +103,24 @@ export const Game = () => {
           nbCells={gamesize}
           cells={filterMatriceByRow(i)}
           setColoredCell={setColoredCell}
+          pressedCell={pressedcell}
         />
       ))}
+      {/* {iswin?<ConfettiCannon count={100} origin={{x: -10, y: 0}} onAnimationEnd={setIswin(false)}/>:null} */}
+      
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: Platform.OS === "android" ? 35 : 0,
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "black",
+  },
+  white: {
+    color: "white",
   },
 });
