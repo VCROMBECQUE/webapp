@@ -1,8 +1,8 @@
 import { memo, useEffect, useRef } from "react";
 
-import { Animated, StyleSheet, View, Pressable, Text } from "react-native";
+import { Animated, StyleSheet, View, Pressable } from "react-native";
 
-export const Cell = memo(({ col, row, size , pressedAction, checked, pressedCell }) => {
+export const Cell = memo(({ pressedAction, checked, pressedCell , cellcolor }) => {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -31,16 +31,16 @@ export const Cell = memo(({ col, row, size , pressedAction, checked, pressedCell
   return (
     <View>
       <Pressable style={styles.cell} onPress={pressedAction}>
-        <Animated.View style={[styles.animcell, {opacity: fadeAnim}]}/>
+        <Animated.View style={[styles.animcell, {opacity: fadeAnim , backgroundColor: cellcolor}]}/>
       </Pressable>
     </View>
   );
-});
+}); 
 
 const styles = StyleSheet.create({
   cell: {
     borderColor: "black",
-    borderWidth: 0.8,
+    borderWidth: 1,
     width: 51,
     height: 51,
     backgroundColor: "white"
@@ -48,6 +48,5 @@ const styles = StyleSheet.create({
   animcell:{
     width: "100%",
     height: "100%",
-    backgroundColor: "orange"
   }
 });

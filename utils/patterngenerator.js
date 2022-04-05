@@ -8,12 +8,10 @@ export function patternGenerator(size) {
     alreadyuse.push(i);
   }
 
-  // const randomroll = getRandomIntInclusive(size, size * size);  
-  const randomroll = 1
+  const randomroll = getRandomIntInclusive(size, size * size);
 
   for (let j = 0; j < randomroll; j++) {
-
-    const numbertochange = getRandomIntInclusive(0, alreadyuse.length-1);
+    const numbertochange = getRandomIntInclusive(0, alreadyuse.length - 1);
 
     resolve.push(alreadyuse[numbertochange]);
 
@@ -21,13 +19,12 @@ export function patternGenerator(size) {
     alreadyuse.splice(numbertochange, 1);
 
     cells.forEach((cell) => {
-      pattern[cell]=!pattern[cell]
+      pattern[cell] = !pattern[cell];
     });
   }
+  const subcolor = "hsl(" + Math.random() * 360 + ", 100%, 75%)";
 
-  console.log("resolve = ");
-  console.log(resolve);
-  return pattern;
+  return [pattern, resolve, subcolor];
 }
 
 const cellAround = (cell, gamesize) => {

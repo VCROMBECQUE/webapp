@@ -1,44 +1,77 @@
-import { StyleSheet, SafeAreaView, Text, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
+  Platform,
+} from "react-native";
 import { Row } from "./Row";
 import { useState, useCallback, useEffect } from "react";
 import { range } from "../utils/filters";
 import { patternGenerator } from "../utils/patterngenerator";
-import ConfettiCannon from 'react-native-confetti-cannon';
+
+const GAME_PENALITY = 15;
 
 export const Game = () => {
-  const [gamesize, setGamesize] = useState(5);
-  const [resetmatrice, setResetmatrice] = useState(() => patternGenerator(gamesize));
-  const [matrice, setMatrice] = useState(resetmatrice);
+  const [gamesize, setGamesize] = useState(1);
+  const [backupgame, setBackupgame] = useState(() =>
+    patternGenerator(gamesize)
+  );
+  const [matrice, setMatrice] = useState(backupgame[0]);
+  const [solution, setSolution] = useState(backupgame[1]);
   const [click, setClick] = useState(0);
   const [pressedcell, setPressedcell] = useState(null);
-  const [iswin, setIswin] = useState(false)
+  const [iswin, setIswin] = useState(false);
+  const [gamecolor, setGamecolor] = useState(backupgame[2]);
 
   useEffect(() => {
-    setMatrice(resetmatrice)
-  }, [resetmatrice,setMatrice]);
+    setMatrice(backupgame[0]);
+    setSolution(backupgame[1]);
+    setGamecolor(backupgame[2]);
+  }, [backupgame, setMatrice, setSolution]);
 
-  useEffect(() => {
-    if (Object.values(matrice).every(m => m) ) {
-      setIswin(true)
-    }
-    else {
-      setIswin(false)
-    }
-  }, [matrice]);
+  const checkMatriceComplete = useCallback(
+    (mat) => {
+      if (Object.values(mat).every((m) => m)) {
+        setGamecolor("#7DB700");
+        setIswin(true);
+      } else {
+        setIswin(false);
+      }
+    },
+    [setGamecolor, setIswin]
+  );
 
   const setColoredCell = useCallback(
-    (row, cell_id) => {
-      setClick((prevState) => prevState + 1);
+    (row, cell_id, penality = 1) => {
+      setClick((prevState) => prevState + 1 * penality);
       const cell = cell_id + gamesize * row;
-      setPressedcell(cell)
+      setPressedcell(cell);
+
+      editSolution(cell);
+
       const cellsToUpdate = getNormalizedChange(cell, row);
       const updatedMatrice = { ...matrice };
       cellsToUpdate.forEach((cell) => {
         updatedMatrice[cell] = !updatedMatrice[cell];
       });
+
       setMatrice(updatedMatrice);
+      checkMatriceComplete(updatedMatrice);
     },
     [getNormalizedChange, matrice]
+  );
+
+  const editSolution = useCallback(
+    (cell) => {
+      if (solution.includes(cell)) {
+        setSolution((prevSol) => prevSol.filter((_sol) => _sol != cell));
+      } else {
+        setSolution((prevSol) => [...prevSol, cell]);
+      }
+    },
+    [solution, setSolution]
   );
 
   const getNormalizedChange = useCallback(
@@ -77,50 +110,116 @@ export const Game = () => {
     [matrice, gamesize]
   );
 
+  const useHelpToResolveGame = useCallback(() => {
+    if (solution == null || iswin) {
+      return;
+    }
+
+    const sol = [...solution];
+    const help = sol[0];
+    const helprow = Math.floor(help / gamesize);
+    const helpcell = help % gamesize;
+
+    setColoredCell(helprow, helpcell, GAME_PENALITY);
+  }, [solution, setColoredCell, setSolution]);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.white}>{click}</Text>
-      <TouchableOpacity
-        onPress={() => {
-          setClick(0);
-          setMatrice(resetmatrice);
-        }}
-      >
-        <Text style={styles.white}>Reset</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => {
-          setClick(0);
-          setResetmatrice(() => patternGenerator(gamesize));
-        }}
-      >
-        <Text style={styles.white}>New map</Text>
-      </TouchableOpacity>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { marginTop: Platform ? (Platform.OS === "android" ? 35 : 0) : 0 },
+      ]}
+    >
+      <Text style={styles.compter}>{click}</Text>
+
       {[...Array(gamesize)].map((_, i) => (
         <Row
           key={i}
           row={i}
           nbCells={gamesize}
           cells={filterMatriceByRow(i)}
-          setColoredCell={setColoredCell}
+          setColoredCell={iswin ? null : setColoredCell}
           pressedCell={pressedcell}
+          cellcolor={gamecolor}
         />
       ))}
-      {/* {iswin?<ConfettiCannon count={100} origin={{x: -10, y: 0}} onAnimationEnd={setIswin(false)}/>:null} */}
-      
+
+      <View style={styles.btncontainer}>
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: "#007dB7" }]}
+          onPress={() => {
+            setClick(0);
+            setIswin(false);
+            setBackupgame(() => patternGenerator(gamesize));
+          }}
+        >
+          <Text style={[styles.textbtn, { color: "white" }]}>New</Text>
+        </TouchableOpacity>
+        {iswin ? (
+          <TouchableOpacity
+            style={[styles.btn, { backgroundColor: "#7DB700" }]}
+            onPress={() => {
+              setGamesize((prevgamesize) => (prevgamesize % 8) + 1);
+              setClick(0);
+              setIswin(false);
+              setBackupgame(() => patternGenerator((gamesize % 8) + 1));
+            }}
+          >
+            <Text style={styles.textbtn}>Next</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => {
+              useHelpToResolveGame();
+            }}
+          >
+            <Text style={styles.textbtn}>Help</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: "#B70000" }]}
+          onPress={() => {
+            setClick(0);
+            setIswin(false);
+            setGamecolor(backupgame[2]);
+            setSolution(backupgame[1]);
+            setMatrice(backupgame[0]);
+          }}
+        >
+          <Text style={[styles.textbtn, { color: "white" }]}>Reset</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: Platform.OS === "android" ? 35 : 0,
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "black",
   },
-  white: {
+  btncontainer: {
+    flex: 0,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+  btn: {
+    backgroundColor: "white",
+    padding: 20,
+    margin: 20,
+    borderRadius: 10,
+  },
+  compter: {
+    fontSize: 120,
     color: "white",
+  },
+  textbtn: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
